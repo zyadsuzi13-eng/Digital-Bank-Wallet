@@ -115,6 +115,8 @@ public:
 
     void display()
     {
+        Clear_Screen();
+        cout << "=====  Account Details  =====\n\n";
         cout << "Owner name : " << name << endl;
         cout << "Id : " << id << endl;
         cout << "balance : " << balance << endl;
@@ -348,7 +350,11 @@ void displayAllAccount(const vector<Bank> &account)
 int Menu()
 {
     int x;
-    cout << "\n1. Login " << endl;
+    cout << "===================================" << endl;
+    cout << "=====   Welcome to main menu   =====" << endl;
+    cout << "===================================" << endl;
+    cout << "Please choose from the following options : " << endl;
+    cout << "1. Login " << endl;
     cout << "2. sign up " << endl;
     cout << "3. Login As Admin " << endl;
     cout << "4. Exit " << endl;
@@ -360,6 +366,11 @@ int Menu()
 int UserMenu()
 {
     int x;
+    cout << "===================================" << endl;
+    cout << "=====   Welcome to User menu   =====" << endl;
+    cout << "===================================" << endl;
+    ;
+    cout << "Please choose from the following options : ";
     cout << "\n1. deposit " << endl;
     cout << "2. withdraw " << endl;
     cout << "3. Unactive Account " << endl;
@@ -374,7 +385,7 @@ int UserMenu()
 int Login(vector<Bank> &account, string &p)
 {
     system("cls");
-    cout << "=====  welcome to login menu  =====";
+    cout << "=====  welcome to login page  =====";
     int i;
     cout << "\nEnter the ID : ";
     cin >> i;
@@ -388,7 +399,11 @@ int AdminMenu()
 {
     system("cls");
     int x;
-    cout << "=====  welcome to Admin menu  =====";
+    cout << "===================================" << endl;
+    cout << "=====  welcome to Admin menu  =====" << endl;
+    cout << "===================================" << endl
+         << endl;
+    cout << "Please choose from the following options : ";
     cout << "\n1. Display All Accounts " << endl;
     cout << "2. Search For Account (ID)" << endl;
     cout << "3. Login As Admin " << endl;
@@ -423,7 +438,7 @@ int main()
     while (true)
     {
         int choice = Menu();
-        cout << "Loding....";
+        cout << "\nLoding....";
         Sleep(2000);
 
         if (choice == 4) // exit
@@ -438,42 +453,40 @@ int main()
             Clear_Screen(); // clear the screen before login page
             cout << "====welcome to login Page====\n";
             bool user = true;
+            string p;
+            int index = Login(account, p);
+
+            if (index == -1)
+            {
+                cout << "\nthis account dosn't found in the system.\n";
+                cout << "try to login Again\n ";
+                cout << endl;
+                continue;
+            }
+            Bank &t = account[index];
             while (true)
             {
-                string p;
-                int index = Login(account, p);
-
-                if (index == -1)
+                if (!(isPassTheSame(t.get_pass(), p)))
                 {
-                    cout << "\nthis account dosn't found in the system.\n";
-                    cout << "try to login Again\n ";
-                    cout << endl;
-                    continue;
+                    cout << "\nthe password is incorrect" << endl;
+                    cout << "try to login Again : ";
+                    p = EnterPass2();
                 }
-
-                Bank &t = account[index];
-
-                while (true)
+                else
                 {
-                    if (!(isPassTheSame(t.get_pass(), p)))
-                    {
-                        cout << "\nthe password is incorrect" << endl;
-                        cout << "try to login Again : ";
-                        p = EnterPass2();
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    break;
                 }
-                if (!(t.IsActive()))
-                {
-                    cout << "this account is not active \n";
-                    Sleep(2000);
-                    Clear_Screen();
-                    user = false;
-                    continue;
-                }
+            }
+            if (!(t.IsActive()))
+            {
+                cout << "this account is not active \n";
+                Sleep(2000);
+                Clear_Screen();
+                user = false;
+                continue;
+            }
+            while (user)
+            {
 
                 cout << "\n login in.....\n";
                 Sleep(1000);
@@ -525,6 +538,8 @@ int main()
                 case 4:
                 {
                     t.display();
+                    cout << "\nPress any key to go to main menu : ";
+                    _getch();
                     break;
                 }
                 break;
@@ -543,6 +558,7 @@ int main()
         break;
         case 2: // sign up
         {
+
             Bank tempOpj = CreatAccount(account);
             account.push_back(tempOpj);
             cout << "Account Created Successfully\n";
@@ -553,8 +569,8 @@ int main()
                  { return a.get_id() < b.get_id(); }); // sort the account vector after adding new account to keep it sorted for binary search
             save_account(account);
             _getch();
-            cout << "Loding....";
-            Sleep(500);
+            cout << "\nLoding....";
+            Sleep(1500);
             Clear_Screen();
             continue;
         }
