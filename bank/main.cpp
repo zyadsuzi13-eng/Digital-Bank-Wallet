@@ -292,6 +292,27 @@ void load_account(vector<Bank> &account)
     }
 }
 
+void save_account(const vector<Bank> &account)
+{
+    ofstream outfile("account.txt");
+    if (!outfile)
+    {
+        cout << "Error: Could not open file for saving!" << endl;
+        return;
+    }
+
+    for (const auto &acc : account)
+    {
+        outfile << acc.get_id() << ","
+                << acc.get_name() << ","
+                << acc.get_balance() << ","
+                << acc.get_pass() << ","
+                << (acc.IsActive() ? 1 : 0) << endl;
+    }
+
+    outfile.close();
+}
+
 Bank CreatAccount(vector<Bank> &account)
 {
     system("cls");
@@ -341,7 +362,7 @@ int UserMenu()
     int x;
     cout << "\n1. deposit " << endl;
     cout << "2. withdraw " << endl;
-    cout << "3. Active/Unactive Account " << endl;
+    cout << "3. Unactive Account " << endl;
     cout << "4. Show Account Details " << endl;
     cout << "5. Go To Main Menu " << endl;
     cout << "6. Exit " << endl;
@@ -351,15 +372,14 @@ int UserMenu()
 }
 
 int Login(vector<Bank> &account, string &p)
-{   system("cls");
+{
+    system("cls");
     cout << "=====  welcome to login menu  =====";
     int i;
     cout << "\nEnter the ID : ";
     cin >> i;
     cout << "enter The password : ";
     p = EnterPass2();
-    sort(account.begin(), account.end(), [](const Bank &a, const Bank &b)
-         { return a.get_id() < b.get_id(); });
     int c_index = search(account, i);
     return c_index;
 }
@@ -368,7 +388,7 @@ int AdminMenu()
 {
     system("cls");
     int x;
-    cout << "=====  welcome to login menu  =====";
+    cout << "=====  welcome to Admin menu  =====";
     cout << "\n1. Display All Accounts " << endl;
     cout << "2. Search For Account (ID)" << endl;
     cout << "3. Login As Admin " << endl;
@@ -394,6 +414,8 @@ int main()
 {
     srand(time(0));
     load_account(account);
+    sort(account.begin(), account.end(), [](const Bank &a, const Bank &b)
+         { return a.get_id() < b.get_id(); }); // sort the account vector to be ready for binary search
     cout << "===================================" << endl;
     cout << "=====   Welcome to Our Bank   =====" << endl;
     cout << "===================================" << endl;
@@ -404,7 +426,7 @@ int main()
         cout << "Loding....";
         Sleep(2000);
 
-        if (choice == 4)
+        if (choice == 4) // exit
         {
             break;
         }
@@ -413,7 +435,7 @@ int main()
         {
         case 1: // login
         {
-            Clear_Screen();
+            Clear_Screen(); // clear the screen before login page
             cout << "====welcome to login Page====\n";
             bool user = true;
             while (true)
@@ -435,8 +457,8 @@ int main()
                 {
                     if (!(isPassTheSame(t.get_pass(), p)))
                     {
-                        cout << "\nthe password is incorrect\n"
-                             << endl;
+                        cout << "\nthe password is incorrect" << endl;
+                        cout << "try to login Again : ";
                         p = EnterPass2();
                     }
                     else
@@ -527,7 +549,13 @@ int main()
             cout << "your ID is : " << tempOpj.get_id();
             cout << endl
                  << "Press any key to go to main menu : ";
+            sort(account.begin(), account.end(), [](const Bank &a, const Bank &b)
+                 { return a.get_id() < b.get_id(); }); // sort the account vector after adding new account to keep it sorted for binary search
+            save_account(account);
             _getch();
+            cout << "Loding....";
+            Sleep(500);
+            Clear_Screen();
             continue;
         }
         break;
