@@ -373,7 +373,7 @@ int Menu()
 {
     int x;
     cout << "===================================" << endl;
-    cout << "=====   Welcome to main menu   =====" << endl;
+    cout << "=====   Welcome to main menu   ====" << endl;
     cout << "===================================" << endl;
     cout << "Please choose from the following options : " << endl;
     cout << "1. Login " << endl;
@@ -511,16 +511,16 @@ int main()
             }
             if (!(t.IsActive()))
             {
-                cout << "this account is not active \n";
+                cout << "\nthis account is not active \n";
                 Sleep(2000);
                 Clear_Screen();
                 user = false;
                 continue;
             }
+            cout << "\n login in.....\n";
             while (user)
             {
 
-                cout << "\n login in.....\n";
                 Sleep(1000);
                 Clear_Screen();
                 cout << "=====  welcome " << t.get_name() << "  =====\n";
@@ -534,24 +534,35 @@ int main()
                     cout << "Enter the amount\n :";
                     cin >> a;
                     t.deposit(a);
+
                     break;
                 }
                 break;
 
                 case 2:
                 {
-                    while (true)
+                    double a;
+                    cout << "Loading....";
+                    Sleep(1000);
+                    Clear_Screen();
+                    cout << "======  Withdraw  ======\n";
+                    cout << "\nEnter the amount :";
+                    cin >> a;
+                    if (a <= t.get_balance())
                     {
-                        double a;
-                        cout << "\nEnter the amount :";
-                        cin >> a;
-                        if (a <= t.get_balance())
-                        {
-                            t.withdraw(a);
-                            break;
-                        }
+                        t.withdraw(a);
+                        break;
                     }
-                    break;
+                    else
+                    {
+                        cout << "your balance isn't enough .";
+                        cout << "press any key to go back.";
+                        _getch();
+                        cout << "Loading....";
+                        Sleep(500);
+                        Clear_Screen();
+                        continue;
+                    }
                 }
                 break;
                 case 3:
@@ -577,8 +588,20 @@ int main()
                 break;
                 case 5:
                 {
-                    user = false;
-                    break;
+                    cout << "Are you sure you want to logout? (y/n): ";
+                    char confirm;
+                    cin >> confirm;
+                    if (confirm == 'y' || confirm == 'Y')
+                    {
+                        user = false;
+                    }
+                    else
+                    {
+                        cout << "Logout cancelled. Returning to user menu.\n";
+                        cout << "Loading....";
+                        Sleep(1500);
+                        Clear_Screen();
+                    }
                 }
                 default:
                     cout << "invalid input";
@@ -654,6 +677,7 @@ int main()
                         cout << "press * to change this Account status to " << (b.IsActive() ? "(unActive)" : "(Active)") << " or any other key to exit :";
                         char x;
                         cin >> x;
+                        cin.ignore();
                         if (x == '*')
                         {
                             cout << "Are you sure you want to do this process ? [y/n] : ";
@@ -680,7 +704,7 @@ int main()
 
                     case 3:
                     {
-                        cout << "\nLoding....";
+                        cout << "\nLoading....";
                         Sleep(1500);
                         Clear_Screen();
                         cout << "Enter the ID of the account : ";
@@ -693,10 +717,10 @@ int main()
                             cout << "Are you sure you want to " << (b.IsActive() ? "unActive" : "Active") << "? [y/n] : ";
                             char y;
                             cin >> y;
-                            if (y == 'y') //! الشرط م شغال في حالة عدم تأكيد العملية
+                            if (y == 'y' || y == 'Y')
                             {
                                 b.disActive();
-                                cout << "done " << (b.IsActive() ? "(unActivated)" : "(Activated)") << " account " << endl;
+                                cout << "done " << (b.IsActive() ? "(Activated)" : "(unActivated)") << " account " << endl;
                                 save_account(account);
                                 cout << "press any key to exit :";
                                 _getch();
@@ -706,7 +730,7 @@ int main()
                             }
                             else
                             {
-                                cout << "invalid input press any key to go back : ";
+                                cout << "\ninvalid input press any key to go back : ";
                                 _getch();
                                 break;
                             }
@@ -714,7 +738,7 @@ int main()
                         else
                         {
                             cout << "this account not found in the system";
-                            cout << "press any key to go back";
+                            cout << "\npress any key to go back";
                             _getch();
                             cout << "loading...";
                             Sleep(1000);
@@ -727,9 +751,10 @@ int main()
                         cout << "\nExiting....";
                         Sleep(2000);
                         in = false;
+                        break;
                     }
                     default:
-                        cout << "invalid input ";
+                        cout << "\ninvalid input ";
                         break;
                     }
                 }
