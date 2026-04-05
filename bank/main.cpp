@@ -364,9 +364,10 @@ void displayAllAccount(const vector<Bank> &account)
         cout << left << setw(10) << acc.get_id()
              << "| " << setw(20) << acc.get_name()
              << "| " << setw(14) << fixed << setprecision(2) << acc.get_balance()
-             << "| " << (acc.IsActive() ? "Active" : "Frozen") << endl;
+             << "| " << (acc.IsActive() ? "Active" : "Inactive") << endl;
         totalBankMoney += acc.get_balance();
     }
+    cout << "\nTotal balance in the bank: " << fixed << setprecision(2) << totalBankMoney << endl;
 }
 
 int Menu()
@@ -496,12 +497,23 @@ int main()
                 continue;
             }
             Bank &t = account[index];
-            while (true)
+            int tries = 3;
+            while (tries > 0)
             {
+                if (tries == 1)
+                {
+                    cout << "\nYou have entered the wrong password 3 times and your account is now locked. Returning to main menu.\n";
+                    Sleep(2000);
+                    Clear_Screen();
+                    t.disActive();
+                    user = false;
+                    break;
+                }
                 if (!(isPassTheSame(t.get_pass(), p)))
                 {
                     cout << "\nthe password is incorrect" << endl;
                     cout << "try to login Again : ";
+                    tries--;
                     p = EnterPass2();
                 }
                 else
@@ -524,9 +536,9 @@ int main()
                 Sleep(1000);
                 Clear_Screen();
                 cout << "=====  welcome " << t.get_name() << "  =====\n";
-                int choos = UserMenu();
+                int chooses = UserMenu();
 
-                switch (choos)
+                switch (chooses)
                 {
                 case 1:
                 {
@@ -567,7 +579,7 @@ int main()
                 break;
                 case 3:
                 {
-                    cout << "Enter your password to unactive your Account ";
+                    cout << "Enter your password to Inactive your Account ";
                     string pa = EnterPass2();
                     if (isPassTheSame(t.get_pass(), p))
                     {
@@ -674,7 +686,7 @@ int main()
                         Bank &b = account[index];
                         Clear_Screen();
                         b.display();
-                        cout << "press * to change this Account status to " << (b.IsActive() ? "(unActive)" : "(Active)") << " or any other key to exit :";
+                        cout << "press * to change this Account status to " << (b.IsActive() ? "(InActive)" : "(Active)") << " or any other key to exit :";
                         char x;
                         cin >> x;
                         cin.ignore();
@@ -771,8 +783,8 @@ int main()
             }
         }
         default:
-            cout << "Invalid Input .";
-            cout << "Enter Any key to try again : ";
+            cout << "\nInvalid Input .";
+            cout << "\nEnter Any key to try again : ";
             _getch();
             cout << "\nLoading....";
             Sleep(1500);
