@@ -669,6 +669,10 @@ int main()
                     case 2:
                     {
                         int D;
+                        cout << "\nLoading....";
+                        Sleep(750);
+                        Clear_Screen();
+                        cout << "=====  Search For Account  =====\n";
                         cout << "Enter the ID : ";
                         cin >> D;
                         cout << "\nSearching....";
@@ -690,7 +694,7 @@ int main()
                         char x;
                         cin >> x;
                         cin.ignore();
-                        if (x == '*')
+                        if (x == '*' || x == '*') //! the condition isn't working I don't know why!
                         {
                             cout << "Are you sure you want to do this process ? [y/n] : ";
                             char y;
@@ -763,7 +767,7 @@ int main()
                         cout << "\nExiting....";
                         Sleep(2000);
                         in = false;
-                        break;
+                        continue;
                     }
                     default:
                         cout << "\ninvalid input ";
