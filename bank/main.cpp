@@ -16,7 +16,6 @@ using namespace std;
 
 int AdminID = 100000;
 string Admin_pass = "Admin123!";
-vector<user> account;
 
 void Sleep(int ms)
 {
@@ -102,8 +101,6 @@ public:
             cout << "Sorry this account isn't active";
         }
     }
-    virtual void Menu(user &t) = 0;
-    virtual bool logout() = 0;
 };
 
 bool IsStrong(string pass)
@@ -186,22 +183,6 @@ string EnterPass2()
         }
     }
     return pass;
-}
-
-int search(const vector<user> &account, int target)
-{
-    int left = 0, right = account.size() - 1;
-    while (left <= right)
-    {
-        int mid = left + (right - left) / 2;
-        if (account[mid].id == target)
-            return mid;
-        if (target < account[mid].id)
-            right = mid - 1;
-        else
-            left = mid + 1;
-    }
-    return -1;
 }
 
 bool is_id_there(const vector<user> &account, int t)
@@ -380,7 +361,7 @@ public:
         }
     }
 
-    bool logout() override
+    bool logout()
     {
         bool user_ = true;
         cout << "Are you sure you want to logout? (y/n): ";
@@ -446,7 +427,7 @@ public:
         }
     }
 
-    void Menu(user &t) override
+    void Menu(user &t)
     {
         Clear_Screen();
         bool userin = true;
@@ -552,87 +533,7 @@ public:
     }
 };
 
-bool IsStrong(string pass)
-{
-    bool is_not_space = true, is_length = false, is_upper = false, is_lower = false, is_sp = false, is_num = false;
-    if (pass.length() >= 8)
-        is_length = true;
-    for (size_t i = 0; i < pass.length(); i++)
-    {
-        char c = pass[i];
-        if (c == 32)
-            is_not_space = false;
-        if (isupper(c))
-            is_upper = true;
-        if (islower(c))
-            is_lower = true;
-        if (ispunct(c))
-            is_sp = true;
-        if (isdigit(c))
-            is_num = true;
-    }
-    return (is_length && is_upper && is_lower && is_sp && is_num && is_not_space);
-}
-
-string EnterPass()
-{
-    string pass = "";
-    char ch;
-    while (true)
-    {
-        pass = "";
-        while (true)
-        {
-            ch = _getch();
-            if (ch == 13)
-                break;
-            if (ch == 8)
-            {
-                if (pass.length() > 0)
-                {
-                    pass.pop_back();
-                    cout << "\b \b";
-                }
-            }
-            else
-            {
-                pass.push_back(ch);
-                cout << "*";
-            }
-        }
-        if (IsStrong(pass))
-            break;
-        else
-            cout << "\nyour password is weak\nenter password again : ";
-    }
-    return pass;
-}
-
-string EnterPass2()
-{
-    string pass = "";
-    char ch;
-    while (true)
-    {
-        ch = _getch();
-        if (ch == 13)
-            break;
-        if (ch == 8)
-        {
-            if (pass.length() > 0)
-            {
-                pass.pop_back();
-                cout << "\b \b";
-            }
-        }
-        else
-        {
-            pass.push_back(ch);
-            cout << "*";
-        }
-    }
-    return pass;
-}
+vector<user> account;
 
 int search(const vector<user> &account, int target)
 {
@@ -648,54 +549,6 @@ int search(const vector<user> &account, int target)
             left = mid + 1;
     }
     return -1;
-}
-
-void load_account(vector<user> &account)
-{
-    ifstream infile("account.txt");
-    if (!infile)
-        return;
-    string line;
-    string t_name, t_pass;
-    while (getline(infile, line))
-    {
-        if (line.empty())
-            continue;
-        stringstream ss(line);
-        string id_s, bal_s, stat_s;
-        getline(ss, id_s, ',');
-        getline(ss, t_name, ',');
-        getline(ss, bal_s, ',');
-        getline(ss, t_pass, ',');
-        getline(ss, stat_s, ',');
-
-        if (!id_s.empty())
-        {
-            user temp(stoi(id_s), t_name, t_pass, stod(bal_s), stoi(stat_s));
-            account.push_back(temp);
-        }
-    }
-}
-
-void save_account(const vector<user> &account)
-{
-    ofstream outfile("account.txt");
-    if (!outfile)
-    {
-        cout << "Error: Could not open file for saving!" << endl;
-        return;
-    }
-
-    for (const auto &acc : account)
-    {
-        outfile << acc.get_id() << ","
-                << acc.get_name() << ","
-                << acc.get_balance() << ","
-                << acc.get_pass() << ","
-                << (acc.IsActive() ? 1 : 0) << endl;
-    }
-
-    outfile.close();
 }
 
 class Admin : public Bank
@@ -749,13 +602,14 @@ public:
 
     bool Menu()
     {
+        bool in = true;
         Sleep(1000);
         system("cls");
-        if (islogin())
+        if (islogin)
         {
 
             int x;
-            bool in = true;
+
             cout << "===================================" << endl;
             cout << "=====  welcome to Admin menu  =====" << endl;
             cout << "===================================" << endl
@@ -771,12 +625,11 @@ public:
             Sleep(1000);
             while (in)
             {
-                int x = AdminMenu();
                 switch (x)
                 {
                 case 1:
                 {
-                    displayAllAccount(account);
+                    display(account);
                     cout << endl;
                     cout << "press any key exit : ";
                     _getch();
@@ -796,7 +649,7 @@ public:
                     cin >> D;
                     cout << "\nSearching....";
                     Sleep(1000);
-                    sort(account.begin(), account.end(), [](const Bank &a, const Bank &b)
+                    sort(account.begin(), account.end(), [](const user &a, const user &b)
                          { return a.get_id() < b.get_id(); });
                     int index = search(account, D);
                     if (index == -1)
@@ -808,7 +661,7 @@ public:
                         return true;
                         continue;
                     }
-                    Bank &b = account[index];
+                    user &b = account[index];
                     Clear_Screen();
                     b.display();
                     cout << "press * to change this Account status to " << (b.IsActive() ? "(InActive)" : "(Active)") << " or any other key to exit :";
@@ -862,7 +715,7 @@ public:
                             save_account(account);
                             cout << "press any key to exit :";
                             _getch();
-                            sleep(1000);
+                            Sleep(1000);
                             return true;
                             continue;
                         }
@@ -879,7 +732,7 @@ public:
                         cout << "this account not found in the system";
                         cout << "\npress any key to go back";
                         _getch();
-                        sleep(750);
+                        Sleep(750);
                         return true;
                         continue;
                     }
@@ -904,7 +757,7 @@ public:
             cout << "\nWrong data !" << endl;
             cout << "Press Any key to go to the main menu : ";
             _getch();
-            sleep(1000);
+            Sleep(1000);
             Clear_Screen();
             in = false;
         }
@@ -941,7 +794,7 @@ int main()
 
     while (true)
     {
-        int choice = Menu();
+        int choice = mainMenu();
 
         if (choice == 4) // exit
         {
@@ -966,7 +819,7 @@ int main()
 
             Clear_Screen(); // clear the screen before sign up page
             user temp;
-            temp.register(account);
+            temp.signup(account);
             save_account(account);
             cout << "\nPress any key to go to the main menu : ";
             _getch();
@@ -1004,7 +857,6 @@ int main()
             break;
         }
     }
-}
 
-return 0;
+    return 0;
 }
