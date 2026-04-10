@@ -103,62 +103,6 @@ public:
     }
 };
 
-bool IsStrong(string pass)
-{
-    bool is_not_space = true, is_length = false, is_upper = false, is_lower = false, is_sp = false, is_num = false;
-    if (pass.length() >= 8)
-        is_length = true;
-    for (size_t i = 0; i < pass.length(); i++)
-    {
-        char c = pass[i];
-        if (c == 32)
-            is_not_space = false;
-        if (isupper(c))
-            is_upper = true;
-        if (islower(c))
-            is_lower = true;
-        if (ispunct(c))
-            is_sp = true;
-        if (isdigit(c))
-            is_num = true;
-    }
-    return (is_length && is_upper && is_lower && is_sp && is_num && is_not_space);
-}
-
-string EnterPass()
-{
-    string pass = "";
-    char ch;
-    while (true)
-    {
-        pass = "";
-        while (true)
-        {
-            ch = _getch();
-            if (ch == 13)
-                break;
-            if (ch == 8)
-            {
-                if (pass.length() > 0)
-                {
-                    pass.pop_back();
-                    cout << "\b \b";
-                }
-            }
-            else
-            {
-                pass.push_back(ch);
-                cout << "*";
-            }
-        }
-        if (IsStrong(pass))
-            break;
-        else
-            cout << "\nyour password is weak\nenter password again : ";
-    }
-    return pass;
-}
-
 string EnterPass2()
 {
     string pass = "";
@@ -185,74 +129,43 @@ string EnterPass2()
     return pass;
 }
 
-bool is_id_there(const vector<user> &account, int t)
-{
-    return (search(account, t) != -1);
-}
-
-int Creat_ID(const vector<user> &account)
-{
-    while (true)
-    {
-        int id = 10000 + rand() % 90000;
-        if (!is_id_there(account, id))
-        {
-            return id;
-        }
-    }
-}
-
-void load_account(vector<user> &account)
-{
-    ifstream infile("account.txt");
-    if (!infile)
-        return;
-    string line;
-    string t_name, t_pass;
-    while (getline(infile, line))
-    {
-        if (line.empty())
-            continue;
-        stringstream ss(line);
-        string id_s, bal_s, stat_s;
-        getline(ss, id_s, ',');
-        getline(ss, t_name, ',');
-        getline(ss, bal_s, ',');
-        getline(ss, t_pass, ',');
-        getline(ss, stat_s, ',');
-
-        if (!id_s.empty())
-        {
-            user temp(stoi(id_s), t_name, t_pass, stod(bal_s), stoi(stat_s));
-            account.push_back(temp);
-        }
-    }
-}
-
-void save_account(const vector<user> &account)
-{
-    ofstream outfile("account.txt");
-    if (!outfile)
-    {
-        cout << "Error: Could not open file for saving!" << endl;
-        return;
-    }
-
-    for (const auto &acc : account)
-    {
-        outfile << acc.get_id() << ","
-                << acc.get_name() << ","
-                << acc.get_balance() << ","
-                << acc.get_pass() << ","
-                << (acc.IsActive() ? 1 : 0) << endl;
-    }
-
-    outfile.close();
-}
-
 class user : public Bank
 {
 public:
+    string EnterPass()
+    {
+        string pass = "";
+        char ch;
+        while (true)
+        {
+            pass = "";
+            while (true)
+            {
+                ch = _getch();
+                if (ch == 13)
+                    break;
+                if (ch == 8)
+                {
+                    if (pass.length() > 0)
+                    {
+                        pass.pop_back();
+                        cout << "\b \b";
+                    }
+                }
+                else
+                {
+                    pass.push_back(ch);
+                    cout << "*";
+                }
+            }
+            if (IsStrong(pass))
+                break;
+            else
+                cout << "\nyour password is weak\nenter password again : ";
+        }
+        return pass;
+    }
+
     void deposit(double amount)
     {
         if (IsActive())
@@ -264,6 +177,22 @@ public:
         {
             cout << "Sorry this account isn't active";
         }
+    }
+
+    int search(const vector<user> &account, int target)
+    {
+        int left = 0, right = account.size() - 1;
+        while (left <= right)
+        {
+            int mid = left + (right - left) / 2;
+            if (account[mid].id == target)
+                return mid;
+            if (target < account[mid].id)
+                right = mid - 1;
+            else
+                left = mid + 1;
+        }
+        return -1;
     }
 
     void withdraw(double amount)
@@ -310,8 +239,8 @@ public:
     {
 
         cout << "=====  welcome to login page  =====";
-        int i;
         cout << "\nEnter the ID : ";
+        int i;
         cin >> i;
         cout << "enter The password : ";
         p = EnterPass2();
@@ -325,6 +254,79 @@ public:
         cout << "Name: " << get_name() << endl;
         cout << "Balance: " << fixed << setprecision(2) << get_balance() << endl;
         cout << "Status: " << (IsActive() ? "Active" : "Inactive") << endl;
+    }
+
+    bool IsStrong(string pass)
+    {
+        bool is_not_space = true, is_length = false, is_upper = false, is_lower = false, is_sp = false, is_num = false;
+        if (pass.length() >= 8)
+            is_length = true;
+        for (size_t i = 0; i < pass.length(); i++)
+        {
+            char c = pass[i];
+            if (c == 32)
+                is_not_space = false;
+            if (isupper(c))
+                is_upper = true;
+            if (islower(c))
+                is_lower = true;
+            if (ispunct(c))
+                is_sp = true;
+            if (isdigit(c))
+                is_num = true;
+        }
+        return (is_length && is_upper && is_lower && is_sp && is_num && is_not_space);
+    }
+
+    string EnterPass()
+    {
+        string pass = "";
+        char ch;
+        while (true)
+        {
+            pass = "";
+            while (true)
+            {
+                ch = _getch();
+                if (ch == 13)
+                    break;
+                if (ch == 8)
+                {
+                    if (pass.length() > 0)
+                    {
+                        pass.pop_back();
+                        cout << "\b \b";
+                    }
+                }
+                else
+                {
+                    pass.push_back(ch);
+                    cout << "*";
+                }
+            }
+            if (IsStrong(pass))
+                break;
+            else
+                cout << "\nyour password is weak\nenter password again : ";
+        }
+        return pass;
+    }
+
+    bool is_id_there(const vector<user> &account, int t)
+    {
+        return (search(account, t) != -1);
+    }
+
+    int Creat_ID(const vector<user> &account)
+    {
+        while (true)
+        {
+            int id = 10000 + rand() % 90000;
+            if (!is_id_there(account, id))
+            {
+                return id;
+            }
+        }
     }
 
     int signup(vector<user> &account)
@@ -379,7 +381,9 @@ public:
             cout << "Logout cancelled. Returning to user menu.\n";
             Sleep(1500);
             Clear_Screen();
+            user_ = true;
         }
+        return user_;
     }
 
     bool user_ = true;
@@ -425,6 +429,8 @@ public:
                 break;
             }
         }
+
+        return user();
     }
 
     void Menu(user &t)
@@ -549,6 +555,54 @@ int search(const vector<user> &account, int target)
             left = mid + 1;
     }
     return -1;
+}
+
+void load_account(vector<user> &account)
+{
+    ifstream infile("account.txt");
+    if (!infile)
+        return;
+    string line;
+    string t_name, t_pass;
+    while (getline(infile, line))
+    {
+        if (line.empty())
+            continue;
+        stringstream ss(line);
+        string id_s, bal_s, stat_s;
+        getline(ss, id_s, ',');
+        getline(ss, t_name, ',');
+        getline(ss, bal_s, ',');
+        getline(ss, t_pass, ',');
+        getline(ss, stat_s, ',');
+
+        if (!id_s.empty())
+        {
+            user temp(stoi(id_s), t_name, t_pass, stod(bal_s), stoi(stat_s));
+            account.push_back(temp);
+        }
+    }
+}
+
+void save_account(const vector<user> &account)
+{
+    ofstream outfile("account.txt");
+    if (!outfile)
+    {
+        cout << "Error: Could not open file for saving!" << endl;
+        return;
+    }
+
+    for (const auto &acc : account)
+    {
+        outfile << acc.get_id() << ","
+                << acc.get_name() << ","
+                << acc.get_balance() << ","
+                << acc.get_pass() << ","
+                << (acc.IsActive() ? 1 : 0) << endl;
+    }
+
+    outfile.close();
 }
 
 class Admin : public Bank
