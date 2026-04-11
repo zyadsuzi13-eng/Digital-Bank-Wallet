@@ -17,7 +17,7 @@ using namespace std;
 int AdminID = 100000;
 string Admin_pass = "Admin123!";
 
-void Sleep(int ms)
+void sleep(int ms)
 {
     std::cout << "Loading....";
     Sleep(1000);
@@ -235,7 +235,7 @@ public:
         this->status = 1;
     }
 
-    int Login(vector<user> &account, string &p)
+    int Login(vector<user> &account, string p)
     {
 
         cout << "=====  welcome to login page  =====";
@@ -276,40 +276,6 @@ public:
                 is_num = true;
         }
         return (is_length && is_upper && is_lower && is_sp && is_num && is_not_space);
-    }
-
-    string EnterPass()
-    {
-        string pass = "";
-        char ch;
-        while (true)
-        {
-            pass = "";
-            while (true)
-            {
-                ch = _getch();
-                if (ch == 13)
-                    break;
-                if (ch == 8)
-                {
-                    if (pass.length() > 0)
-                    {
-                        pass.pop_back();
-                        cout << "\b \b";
-                    }
-                }
-                else
-                {
-                    pass.push_back(ch);
-                    cout << "*";
-                }
-            }
-            if (IsStrong(pass))
-                break;
-            else
-                cout << "\nyour password is weak\nenter password again : ";
-        }
-        return pass;
     }
 
     bool is_id_there(const vector<user> &account, int t)
@@ -373,13 +339,13 @@ public:
         {
             cout << "Logging out...";
             user_ = false;
-            Sleep(1500);
+            sleep(1500);
             Clear_Screen();
         }
         else
         {
             cout << "Logout cancelled. Returning to user menu.\n";
-            Sleep(1500);
+            sleep(1500);
             Clear_Screen();
             user_ = true;
         }
@@ -388,17 +354,15 @@ public:
 
     bool user_ = true;
 
-    user logedin(vector<user> &account)
+    bool logedin(vector<user> &account, int index)
     {
-        cout << "====welcome to login Page====\n";
-        string p;
-        int index = Login(account, p);
 
         if (index == -1)
         {
             cout << "\nthis account doesn't found in the system.\n";
             cout << "try to login Again\n ";
             cout << endl;
+            return false;
         }
 
         user &t = account[index];
@@ -407,13 +371,14 @@ public:
 
         while (tries > 0)
         {
+            string p;
             if (tries == 1)
             {
-                cout << "\nYou have entered the wrong password 3 times and your account is now locked. Returning to main menu.\n";
-                Sleep(2000);
+                cout << "\nYou have entered the wrong password 3 times and your account is now locked. \nReturning to main menu...\n";
+                sleep(2000);
                 Clear_Screen();
                 t.disActive();
-                user_ = false;
+                return false;
                 break;
             }
             if (!(isPassTheSame(t.get_pass(), p)))
@@ -425,23 +390,20 @@ public:
             }
             else
             {
-                return account[index];
                 break;
             }
         }
-
-        return user();
+        return true;
     }
 
-    void Menu(user &t)
+    bool Menu(user &t)
     {
         Clear_Screen();
         bool userin = true;
         int x;
         cout << "=========================================" << endl;
-        cout << "      Welcome " << get_name() << " to the menu   ====" << endl;
-        cout << "=========================================" << endl
-             << endl;
+        cout << "      Welcome " << t.get_name() << " to the menu   ====" << endl;
+        cout << "=========================================" << endl;
         cout << "Please choose from the following options : ";
         cout << "\n1. Deposit " << endl;
         cout << "2. Withdraw " << endl;
@@ -460,8 +422,7 @@ public:
             cout << "Enter the amount\n :";
             cin >> a;
             t.deposit(a);
-
-            break;
+            sleep(1000);
         }
         break;
 
@@ -498,6 +459,11 @@ public:
             {
                 t.disActive();
                 cout << "your Account disActivated successfully.";
+                user_ = false;
+                userin = false;
+                cout << "Logging out...";
+                Sleep(1500);
+                Clear_Screen();
                 break;
             }
             break;
@@ -528,7 +494,7 @@ public:
             {
                 cout << "Logout cancelled. Returning to user menu.\n";
                 cout << "Loading....";
-                Sleep(1500);
+                sleep(1500);
                 Clear_Screen();
             }
         }
@@ -536,6 +502,7 @@ public:
             cout << "invalid input";
             break;
         }
+        return userin;
     }
 };
 
@@ -796,6 +763,7 @@ public:
                 {
                     cout << "\nExiting....";
                     Sleep(1000);
+                    Clear_Screen();
                     in = false;
                     return false;
                 }
@@ -823,6 +791,7 @@ public:
 int mainMenu()
 {
     int x;
+    Clear_Screen();
     cout << "===================================" << endl;
     cout << "=====   Welcome to main menu   ====" << endl;
     cout << "===================================" << endl;
@@ -842,10 +811,6 @@ int main()
     load_account(account);
     sort(account.begin(), account.end(), [](const Bank &a, const Bank &b)
          { return a.get_id() < b.get_id(); }); // sort the account vector to be ready for binary search
-    cout << "===================================" << endl;
-    cout << "=====   Welcome to Our Bank   =====" << endl;
-    cout << "===================================" << endl;
-
     while (true)
     {
         int choice = mainMenu();
@@ -865,7 +830,19 @@ int main()
         {
             Clear_Screen(); // clear the screen before login page
             user u;
-            u.logedin(account);
+            int index = u.Login(account, u.get_pass());
+            if (u.logedin(account, index))
+            {
+                user t = account[index];
+                while (u.user_)
+                {
+                    bool in = t.Menu(t);
+                    if (!in)
+                    {
+                        break;
+                    }
+                }
+            }
         }
         break;
         case 2: // sign up
@@ -885,11 +862,16 @@ int main()
         {
             Clear_Screen(); // clear the screen before admin login page
             Admin admin(AdminID, "Admin", Admin_pass);
-            if (admin.Login(AdminID, Admin_pass))
+            bool enter = admin.Login(AdminID, Admin_pass);
+            if (enter)
             {
-                while (admin.Login(AdminID, Admin_pass))
+                while (true)
                 {
-                    admin.Menu();
+                    bool intheapp = admin.Menu();
+                    if (!intheapp)
+                    {
+                        break;
+                    }
                 }
             }
             else
@@ -901,6 +883,7 @@ int main()
                 Clear_Screen();
             }
         }
+        break;
         default:
             cout << "\nInvalid Input .";
             cout << "\nEnter Any key to try again : ";
