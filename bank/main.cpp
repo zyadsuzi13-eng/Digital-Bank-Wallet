@@ -821,7 +821,6 @@ int main()
             Sleep(2000);
             return 0;
         }
-
         cout << "\nLoading....";
         Sleep(2000);
         switch (choice)
@@ -834,7 +833,7 @@ int main()
             if (u.logedin(account, index))
             {
                 user t = account[index];
-                while (u.user_)
+                while (t.user_) // while the user is logged in
                 {
                     bool in = t.Menu(t);
                     if (!in)
@@ -842,6 +841,14 @@ int main()
                         break;
                     }
                 }
+            }
+            else
+            {
+                cout << endl
+                     << "Press Any key to go to the main menu : ";
+                _getch();
+                sleep(1000);
+                continue;
             }
         }
         break;
