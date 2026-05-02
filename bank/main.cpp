@@ -14,12 +14,16 @@
 #include <sstream>
 using namespace std;
 
+class user;
+extern vector<user> account;
+int search(const vector<user> &account, int target);
+void save_account(const vector<user> &account);
 int AdminID = 100000;
 string Admin_pass = "Admin123!";
 
-void sleep(int ms)
+void sleep(int ms, string word)
 {
-    std::cout << "Loading....";
+    std::cout << word;
     Sleep(1000);
 }
 
@@ -37,6 +41,8 @@ string code(string t, int id)
 {
     string res = "";
     int shift = id % 10;
+    if (shift == 0)
+        shift = 1;
     for (int i = 0; i < int(t.length()); i++)
     {
         unsigned char c = t[i];
@@ -179,22 +185,6 @@ public:
         }
     }
 
-    int search(const vector<user> &account, int target)
-    {
-        int left = 0, right = account.size() - 1;
-        while (left <= right)
-        {
-            int mid = left + (right - left) / 2;
-            if (account[mid].id == target)
-                return mid;
-            if (target < account[mid].id)
-                right = mid - 1;
-            else
-                left = mid + 1;
-        }
-        return -1;
-    }
-
     void withdraw(double amount)
     {
         if (IsActive())
@@ -250,6 +240,8 @@ public:
 
     void display()
     {
+        sleep(1000, "Loading....");
+        cout << "=====  Account info  =====\n";
         cout << "ID: " << get_id() << endl;
         cout << "Name: " << get_name() << endl;
         cout << "Balance: " << fixed << setprecision(2) << get_balance() << endl;
@@ -258,24 +250,16 @@ public:
 
     bool IsStrong(string pass)
     {
-        bool is_not_space = true, is_length = false, is_upper = false, is_lower = false, is_sp = false, is_num = false;
+        bool is_space = any_of(pass.begin(), pass.end(), ::isspace);
+        bool is_length = false;
+        bool is_upper = any_of(pass.begin(), pass.end(), ::isupper);
+        bool is_lower = any_of(pass.begin(), pass.end(), ::islower);
+        bool is_sp = any_of(pass.begin(), pass.end(), ::ispunct);
+        bool is_num = any_of(pass.begin(), pass.end(), ::isdigit);
         if (pass.length() >= 8)
             is_length = true;
-        for (size_t i = 0; i < pass.length(); i++)
-        {
-            char c = pass[i];
-            if (c == 32)
-                is_not_space = false;
-            if (isupper(c))
-                is_upper = true;
-            if (islower(c))
-                is_lower = true;
-            if (ispunct(c))
-                is_sp = true;
-            if (isdigit(c))
-                is_num = true;
-        }
-        return (is_length && is_upper && is_lower && is_sp && is_num && is_not_space);
+
+        return (is_length && is_upper && is_lower && is_sp && is_num && !is_space);
     }
 
     bool is_id_there(const vector<user> &account, int t)
@@ -312,6 +296,7 @@ public:
         user temp(id, n, p, b);
         account.push_back(temp);
         cout << "Account created successfully with ID: " << id << endl;
+        save_account(account);
         return id;
     }
 
@@ -337,15 +322,13 @@ public:
         cin >> confirm;
         if (confirm == 'y' || confirm == 'Y')
         {
-            cout << "Logging out...";
             user_ = false;
-            sleep(1500);
+            sleep(1500, "Logging out...");
             Clear_Screen();
         }
         else
         {
-            cout << "Logout cancelled. Returning to user menu.\n";
-            sleep(1500);
+            sleep(1500, "Logout cancelled. Returning to user menu.\n");
             Clear_Screen();
             user_ = true;
         }
@@ -356,44 +339,43 @@ public:
 
     bool logedin(vector<user> &account, int index)
     {
-
         if (index == -1)
         {
-            cout << "\nthis account doesn't found in the system.\n";
-            cout << "try to login Again\n ";
-            cout << endl;
+            cout << "\nInvalid ID or password.\n";
             return false;
         }
 
         user &t = account[index];
+        if (!t.IsActive())
+        {
+            cout << "\nSorry, this account is Inactive.\n";
+            return false;
+        }
 
         int tries = 3;
+        string p;
 
         while (tries > 0)
         {
-            string p;
-            if (tries == 1)
+            cout << "\nEnter The password (Tries left: " << tries << "): ";
+            p = EnterPass2();
+            if (isPassTheSame(t.get_pass(), p))
             {
-                cout << "\nYou have entered the wrong password 3 times and your account is now locked. \nReturning to main menu...\n";
-                sleep(2000);
-                Clear_Screen();
-                t.disActive();
-                return false;
-                break;
-            }
-            if (!(isPassTheSame(t.get_pass(), p)))
-            {
-                cout << "\nthe password is incorrect" << endl;
-                cout << "try to login Again : ";
-                tries--;
-                p = EnterPass2();
+                return true;
             }
             else
             {
-                break;
+                tries--;
+                if (tries > 0)
+                    cout << "\nIncorrect password. Try again.";
             }
         }
-        return true;
+
+        cout << "\n\nYou entered the wrong password 3 times. Account locked.\n";
+        t.disActive();
+        save_account(account);
+        Sleep(2000);
+        return false;
     }
 
     bool Menu(user &t)
@@ -422,15 +404,15 @@ public:
             cout << "Enter the amount\n :";
             cin >> a;
             t.deposit(a);
-            sleep(1000);
+            save_account(account);
+            sleep(1000, "loading");
         }
         break;
 
         case 2:
         {
             double a;
-            cout << "Loading....";
-            Sleep(1000);
+            sleep(1000, "Loading....");
             Clear_Screen();
             cout << "======  Withdraw  ======\n";
             cout << "\nEnter the amount :";
@@ -438,33 +420,40 @@ public:
             if (a <= t.get_balance())
             {
                 t.withdraw(a);
+                sleep(1000, "loading...");
+                save_account(account);
                 break;
             }
             else
             {
                 cout << "your balance isn't enough .";
-                cout << "press any key to go back.";
+                cout << "press any key to go back:";
                 _getch();
-                cout << "Loading....";
-                Sleep(500);
+                sleep(500, "Loading....");
                 Clear_Screen();
             }
         }
         break;
         case 3:
         {
-            cout << "Enter your password to Inactive your Account ";
+            cout << "Enter your password to Inactive your Account: ";
             string p = EnterPass2();
             if (isPassTheSame(t.get_pass(), p))
             {
                 t.disActive();
-                cout << "your Account disActivated successfully.";
+                cout << "\nyour Account disActivated successfully.\n";
                 user_ = false;
                 userin = false;
-                cout << "Logging out...";
-                Sleep(1500);
+                sleep(1500, "Logging out...");
                 Clear_Screen();
+                save_account(account);
                 break;
+            }
+            else
+            {
+                cout << "\nWrong password. Returning to user menu.\n";
+                sleep(1500, "Loading....");
+                Clear_Screen();
             }
             break;
         }
@@ -494,7 +483,7 @@ public:
             {
                 cout << "Logout cancelled. Returning to user menu.\n";
                 cout << "Loading....";
-                sleep(1500);
+                sleep(1500, "Loading....");
                 Clear_Screen();
             }
         }
@@ -505,24 +494,7 @@ public:
         return userin;
     }
 };
-
-vector<user> account;
-
-int search(const vector<user> &account, int target)
-{
-    int left = 0, right = account.size() - 1;
-    while (left <= right)
-    {
-        int mid = left + (right - left) / 2;
-        if (account[mid].id == target)
-            return mid;
-        if (target < account[mid].id)
-            right = mid - 1;
-        else
-            left = mid + 1;
-    }
-    return -1;
-}
+void save_account(const vector<user> &account);
 
 void load_account(vector<user> &account)
 {
@@ -551,6 +523,8 @@ void load_account(vector<user> &account)
     }
 }
 
+vector<user> account;
+
 void save_account(const vector<user> &account)
 {
     ofstream outfile("account.txt");
@@ -565,7 +539,7 @@ void save_account(const vector<user> &account)
         outfile << acc.get_id() << ","
                 << acc.get_name() << ","
                 << acc.get_balance() << ","
-                << acc.get_pass() << ","
+                << code(acc.get_pass(), acc.get_id()) << ","
                 << (acc.IsActive() ? 1 : 0) << endl;
     }
 
@@ -613,6 +587,7 @@ public:
         if (isPassTheSame(p, pass) && isPassTheSame(to_string(i), to_string(_id)))
         {
             islogin = true;
+            cout << "\nLogin successful. Welcome, ";
             return true;
         }
         else
@@ -832,7 +807,7 @@ int main()
             int index = u.Login(account, u.get_pass());
             if (u.logedin(account, index))
             {
-                user t = account[index];
+                user &t = account[index];
                 while (t.user_) // while the user is logged in
                 {
                     bool in = t.Menu(t);
@@ -847,7 +822,7 @@ int main()
                 cout << endl
                      << "Press Any key to go to the main menu : ";
                 _getch();
-                sleep(1000);
+                sleep(1000, "");
                 continue;
             }
         }
@@ -902,5 +877,24 @@ int main()
         }
     }
 
+    // TODO : create a function that changes the password of the account and add it to the user menu
+    // TODO : Add a transfer money from one account to another account function and add it to the user menu and notfication to the user when he receive money in his account
+
     return 0;
+}
+
+int search(const vector<user> &account, int target)
+{
+    int left = 0, right = account.size() - 1;
+    while (left <= right)
+    {
+        int mid = left + (right - left) / 2;
+        if (account[mid].id == target)
+            return mid;
+        if (target < account[mid].id)
+            right = mid - 1;
+        else
+            left = mid + 1;
+    }
+    return -1;
 }
